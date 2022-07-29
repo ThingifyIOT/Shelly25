@@ -1,0 +1,12 @@
+[submodule "lib/ThingifyEsp"]
+	path = lib/ThingifyEsp
+	url = https://github.com/ThingifyIOT/ThingifyEsp.git
+	branch = master
+[submodule "lib/ThingifyEspModules"]
+	path = lib/ThingifyEspModules
+	url = https://github.com/ThingifyIOT/ThingifyEspModules.git
+	branch = master
+[submodule "lib/FixedString"]
+	path = lib/FixedString
+	url = https://github.com/toomasz/FixedString.git
+	branch = master
