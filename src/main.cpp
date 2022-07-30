@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ThingifyEsp.h>
-
+#include "Lib\DebounceButton\DebounceButton.h"
 #include "temperature_sensor.h"
 
 ThingifyEsp thing("Shelly2.5");
@@ -24,12 +24,13 @@ Node* temperatureNode;
 Node* resetIndicatorNode;
 
 // variables
-bool previousSwitch1State = false;
-bool previousSwitch2State = false;
 bool _wasResetPressed = false;
 uint64_t _resetPressStartTime = 0;
 uint64_t _lastTemperatureRead = 0;
 
+//buttons 
+DebounceButton button1(Switch1Pin, INPUT);
+DebounceButton button2(Switch2Pin, INPUT);
 
 bool OnRelay1Changed(void*_, Node *node)
 {
@@ -49,10 +50,8 @@ void setup()
 	thing.AddDiagnostics();
     thing.AddStatusLed(StatusLedPin, true);
 
-	pinMode(Switch1Pin, INPUT);
-    pinMode(Switch2Pin, INPUT);
+    // pin initialization
     pinMode(ResetButtonPin, INPUT);
-
 	pinMode(Relay1Pin, OUTPUT);
 	pinMode(Relay2Pin, OUTPUT);
 
@@ -60,6 +59,9 @@ void setup()
 
     pinMode(Ade7953IrqPin, INPUT);
 
+    // button intialization
+    button1.Init();
+    button2.Init();
 
 	relay1Node = thing.AddBoolean("Out1")->OnChanged(OnRelay1Changed);
     relay2Node = thing.AddBoolean("Out2")->OnChanged(OnRelay2Changed);
@@ -84,22 +86,17 @@ void ReadTempratureStep()
 }
 void loop()
 {
-	bool switch1State = digitalRead(Switch1Pin);
-	if(switch1State != previousSwitch1State)
-	{
-		relay1Node->Set(!relay1Node->Value.AsBool());
-	}
-	previousSwitch1State = switch1State;
+    if(button1.Loop())
+    {
+        relay1Node->Set(!relay1Node->Value.AsBool());
+    }
+    if(button2.Loop())
+    {
+        relay2Node->Set(!relay2Node->Value.AsBool());
+    }
 
-    bool switch2State = digitalRead(Switch2Pin);
-	if(switch2State != previousSwitch2State)
-	{
-		relay2Node->Set(!relay2Node->Value.AsBool());
-	}
-	previousSwitch1State = switch1State;
-
-    switch1Node->Set(switch1State);
-    switch2Node->Set(switch2State);
+    switch1Node->Set(button1.IsPressed());
+    switch2Node->Set(button2.IsPressed());
 
 
     // detect button reset long press
